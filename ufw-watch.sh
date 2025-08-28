@@ -17,11 +17,21 @@ grep "UFW" "$LOG" | grep -E "^$since|$(date +%b\ %_d)" | awk -v RED="$RED" -v GR
     # Время (первые 3 поля)
     time=$1 " " $2 " " $3
 
-    # Действие = объединяем $7 и $8, убираем скобки
-    gsub(/\[|\]/,"",$7); gsub(/\[|\]/,"",$8)
-    action=$7 " " $8
+    # --- Действие ---
+    action="-"
+    for (i=1;i<=NF;i++) {
+        if ($i ~ /UFW/) {
+            gsub(/\[|\]/,"",$i)
+            action=$i
+            if ($(i+1) != "" && $(i+1) !~ /^[0-9.]+$/) {
+                gsub(/\[|\]/,"",$(i+1))
+                action=action " " $(i+1)
+            }
+            break
+        }
+    }
 
-    # Выбор цвета
+    # Цвет по действию
     color=RESET
     if(action=="UFW BLOCK") color=RED
     if(action=="UFW ALLOW") color=GREEN
